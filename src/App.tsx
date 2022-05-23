@@ -8,7 +8,7 @@ import train from "./data/train"
 
 
 
-//create an object for each line, with user id, movie id, and rating, and push it to the entries array
+//create an object for each line, with user id, movie id, and rating, and push it to an array
 const entry = (input: string[]) => {
 	return {
 		userId: parseInt(input[0]),
@@ -17,15 +17,34 @@ const entry = (input: string[]) => {
 	}
 }
 
+
+
+function filterRatedFromUnrated(input: any[]) {
+	let rated = [];
+	let unrated = [];
+	for (let i = 0; i < input.length; i++) {
+		if(input[i].rating === 0) 
+			unrated.push(input[i]);
+		else
+			rated.push(input[i]);
+	}
+	return {
+		rated: rated,
+		unrated: unrated
+	}
+	
+	
+}
+
 function dataToArray(input: string) {
 	let inp = input.split(/\r?\n/);
 	let res = [];
 	for (let i = 0; i < inp.length; i++) {
 		let line = inp[i].split(" ");
 		res.push(entry(line));
-		}
-
-	return res;
+	}
+	let sorted = filterRatedFromUnrated(res);
+	return sorted;
 }
 
 
