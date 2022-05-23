@@ -1,5 +1,4 @@
 import React from "react"
-import logo from "./logo.svg"
 import "./App.css"
 
 import test5 from "./data/test5"
@@ -8,7 +7,7 @@ import test20 from "./data/test20"
 import train from "./data/train"
 
 
-let entries = [];
+
 //create an object for each line, with user id, movie id, and rating, and push it to the entries array
 const entry = (input: string[]) => {
 	return {
@@ -19,8 +18,13 @@ const entry = (input: string[]) => {
 }
 
 function dataToArray(input: string) {
-	let res = input.split(/\r?\n/);
-	
+	let inp = input.split(/\r?\n/);
+	let res = [];
+	for (let i = 0; i < inp.length; i++) {
+		let line = inp[i].split(" ");
+		res.push(entry(line));
+		}
+
 	return res;
 }
 
