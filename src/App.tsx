@@ -7,18 +7,55 @@ import test10 from "./data/test10"
 import test20 from "./data/test20"
 import train from "./data/train"
 
-function runTest5() {
-	console.log(test5);
 
+let entries = [];
+//create an object for each line, with user id, movie id, and rating, and push it to the entries array
+const entry = (input: string[]) => {
+	return {
+		userId: parseInt(input[0]),
+		movieId: parseInt(input[1]),
+		rating: parseInt(input[2])
+	}
+}
+
+function dataToArray(input: string) {
+	let res = input.split(/\r?\n/);
+	
+	return res;
+}
+
+
+function runTest5() {
+	let data = dataToArray(test5);
+	console.log(data);
 }
 
 function runTest10() {
-	console.log(test10);
+	
+	let data = dataToArray(test10);
+	console.log(data)
 }
 
 function runTest20() {
-	console.log(test20);
+	let data = dataToArray(test20);
+	console.log(data)
 }
+
+
+
+
+function runCosineSimilarity(input: string[]) {
+	let res = input;
+	console.log(res);
+	return res;
+}
+
+function runPearsonCorrelation(input: string[]) {
+	let res = input;
+	console.log(res);
+	return res;
+}
+
 
 
 function App() {
