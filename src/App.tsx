@@ -10,9 +10,9 @@ import train from "./data/train"
 
 //create an object for each line, with user id, movie id, and rating, and push it to an array
 class Entry {
-	userId!: number
-	movieId!: number;
-	rating!: number;
+	userId: number;
+	movieId: number;
+	rating: number;
 
 	constructor(userId: number, movieId: number, rating: number) {
 		this.userId = userId
@@ -20,6 +20,17 @@ class Entry {
 		this.rating = rating
 	}
 }
+
+class User {
+	id: number;
+	entries: Entry[];
+	constructor(id: number) {
+		this.id = id
+		this.entries = []
+	}
+}
+
+/////////////////////DATA INITIALIZATION/////////////////////////////
 
 
 function dataToArray(input: string, filter: boolean) {
@@ -44,66 +55,99 @@ function dataToArray(input: string, filter: boolean) {
 
 	}
 	if (filter) {
-		console.log("FILETERED");
 		return [rated, unrated];
 	}
-	console.log("NOT FILTERED");
-	return entries;
+	return [entries, entries];
 }
 
+/////////////////////END DATA INITIALIZATION/////////////////////////////
 
-function runTest5() {
-	let data = dataToArray(test5, true);
-	let rated = Object.entries(data[0]);
-	console.log(rated[0][1]);
+
+/////////////////////OPERATIONS/////////////////////////////
+function getDotProduct(a: Entry, b: Entry) {
+	let sum = 0;
+	for (let i = 0; i < a.rating; i++) {
+		sum += a.rating * b.rating;
+	}
+	return sum;
 }
 
-function runTest10() {
-	
-	let data = dataToArray(test10, true);
-	console.log(data);
-
+function getMagnitude(input: Entry) {
+	let sum = 0;
+	for (let i = 0; i < input.rating; i++) {
+		sum += Math.pow(input.rating, 2);
+	}
+	return Math.sqrt(sum);
 }
 
-function runTest20() {
-	let data = dataToArray(test20, true);
-
-	// runCosineSimilarity(data, 5);
-	console.log(data)
+function getCosine(a: Entry, b: Entry) {
+	return getDotProduct(a, b) / (getMagnitude(a) * getMagnitude(b));
 }
 
+/////////////////////END OPERATIONS/////////////////////////////
 
 
-//accept an entry, and a test number to run
-function runCosineSimilarity(input: Entry[], testNum: number) {
-	let trainData = dataToArray(train, false);
-	let res = input;
-	if (testNum === 5) {
-		//compute the dot product of the data in the test file and the data in the train file
-		// for (let i = 0; i < res.length; i++) {
-		// 	let dotProduct = 0;
-		// 	for (let j = 0; j < trainData.length; j++) {
-		// 		if (res[i].movieId === trainData[j].movieId) {
-		// 			dotProduct += res[i].rating * trainData[j].rating;
-		// 		}
-		// 	}
-		// 	res[i].dotProduct = dotProduct;
-		// }
+/////////////////////ALGORITHMS/////////////////////////////
 
+function runCosineSimilarity(rated: Entry[], unrated: Entry[], testNum: number) {
+	// //Iterate through the test data, and find the value that is highest for each userId
+	let raw = dataToArray(train, false);
+	let trainData = raw[0];
+	let testUsers: User[] = [];
+	let trainUsers: User[] = [];
+
+	let output: Entry[] = [];
 	
 
-		return res;
+	//Create a user object for each unique user in the input Arr, and push it to an array of users
+	for (let i = 0; i < rated.length; i++) {
+		let userId = rated[i].userId;
+		let movieId = rated[i].movieId;
+		let rating = rated[i].rating;
+
+		let user = testUsers.find(user => user.id === userId);
+		if (user === undefined) {
+			user = new User(userId);
+			testUsers.push(user);
+		}
+		user.entries.push(new Entry(userId, movieId, rating));
 	}
-	else if (testNum === 10) {
-		return res;
+
+	//Create a user object for each unique user in the train data, and push it to an array of users
+	for (let i = 0; i < trainData.length; i++) {
+		let userId = trainData[i].userId;
+		let movieId = trainData[i].movieId;
+		let rating = trainData[i].rating;
+
+		let user = trainUsers.find(user => user.id === userId);
+		if (user === undefined) {
+			user = new User(userId);
+			trainUsers.push(user);
+		}
+		if(user)
+			user.entries.push(new Entry(userId, movieId, rating));
 	}
-	else if (testNum === 20) {
-		return res;
+
+	
+	for (let i = 0; i < testUsers.length; i++) {
+		let maxSimilarity = 0;
+		let closestUserId = -1;
+		let testU = testUsers[i].entries;
+		for (let j = 0; j < trainUsers.length; j++) {
+			let trainU = trainUsers[j].entries;
+			let res = getCosine(testU[0], trainU[0]);
+			if (res > maxSimilarity) {
+				maxSimilarity = res;
+				closestUserId = trainUsers[j].id;
+			}
+		}
+		console.log("Max similarity for user " + testUsers[i].id + " is " + maxSimilarity + " with training user " + closestUserId);
+		// console.log("Closest user to " + i + " is: " + closestUserId);
 	}
 	
-	console.log("ERROR: Invalid test number");
-	return 0;
 }
+
+
 function runPearsonCorrelation(input: string[]) {
 	let res = input;
 	
@@ -111,7 +155,37 @@ function runPearsonCorrelation(input: string[]) {
 	return res;
 }
 
+/////////////////////END ALGORITHMS/////////////////////////////
 
+
+
+
+
+/////////////////////TESTS/////////////////////////////
+
+function runTest5() {
+	let data = dataToArray(test5, true);
+	let rated = data[0];
+	let unrated = data[1];
+	runCosineSimilarity(rated, unrated, 5);
+}
+
+function runTest10() {
+	let data = dataToArray(test10, true);
+	let rated = data[0];
+	let unrated = data[1];
+	runCosineSimilarity(rated, unrated, 10);
+
+}
+
+function runTest20() {
+	let data = dataToArray(test20, true);
+	let rated = data[0];
+	let unrated = data[1];
+	runCosineSimilarity(rated, unrated, 20);
+}
+
+/////////////////////END TESTS/////////////////////////////
 
 function App() {
 	return(
