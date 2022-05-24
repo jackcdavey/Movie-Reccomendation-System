@@ -1,4 +1,5 @@
-const train = `1 1 5
+const train = 
+`1 1 5
 1 2 3
 1 4 3
 1 5 3
