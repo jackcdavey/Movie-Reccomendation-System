@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useState} from "react"
 import "./App.css"
 
 import test5 from "./data/test5"
@@ -85,7 +85,6 @@ function getCosine(a: Entry, b: Entry) {
 }
 
 /////////////////////END OPERATIONS/////////////////////////////
-
 
 /////////////////////ALGORITHMS/////////////////////////////
 
@@ -187,22 +186,72 @@ function runTest20() {
 
 /////////////////////END TESTS/////////////////////////////
 
+
+
+
+
 function App() {
-	return(
-	<div style={{ display: 'flex', flexDirection: "column", alignItems:"center", paddingTop: "5%" }}>
-		<button style={styles.button} onClick={() => { runTest5() }}>Run Test 5</button>
-		<button style={styles.button} onClick={() => { runTest10() }}>Run Test 10</button>
-		<button style={styles.button} onClick={() => { runTest20() }}>Run Test 20</button>
-	</div>
+	const [algChoice, setAlgChoice] = useState(0);
+	const [testNum, setTestNum] = useState(0);
+
+	function startTest() {
+	if(testNum === 5)
+		runTest5();
+	else if(testNum === 10)
+		runTest10();
+	else if(testNum === 20)
+		runTest20();
+}
+
+	return (
+		<div style={{ textAlign: 'center'}}>
+			<h2 style={styles.header}>Running Test: {testNum} Using The: {algChoice} Algorithm</h2>
+			<button style={{backgroundColor:'green', padding: '2%', borderRadius: '10px', color: 'white', fontWeight: 'bold'}}onClick={() => { startTest() }}>START</button>
+
+		<div style={{
+			display: 'flex',
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			width: '80vw',
+			backgroundColor: '#aaaaaa',
+			margin: '5%',
+			borderRadius: '25px'
+		}}>
+			<div style={{ display: 'flex', flexDirection: "column", alignItems: "center", width: "80%", padding: "2%" }}>
+				<h2 style={styles.header}>Test File</h2>
+				<button style={styles.button} onClick={() => { setTestNum(5) }}>Test 5</button>
+				<button style={styles.button} onClick={() => { setTestNum(10)}}>Test 10</button>
+				<button style={styles.button} onClick={() => { setTestNum(20) }}>Test 20</button>
+			</div>
+			<div style={{ display: 'flex', flexDirection: "column", alignItems: "center", width: "80%", padding: "2%" }}>
+				<h2 style={styles.header}>Algorithm</h2>
+				<button style={styles.button} onClick={() => {setAlgChoice(1) }}>Cosine Similarity</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(2) }}>Pearson Correlation</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(3) }}>Item Based</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(4) }}>Custom</button>
+			</div>
+			</div>
+			</div>
 	)
 }
 
 const styles = {
 	button: {
 		margin: '2%',
-		width: '30%',
+		width: '100%',
 		height: '10%',
 		fontSize: '20px',
-	}
+	},
+
+	header: {
+		fontSize: '1.5em',
+		fontWeight: 'bold',
+		color: '#000000',
+		
+		// textAlign: 'center'
+	},
 }
+
+
 export default App
