@@ -6,7 +6,7 @@ import test10 from "./data/test10"
 import test20 from "./data/test20"
 import train from "./data/train"
 
-import cosine_sim from "./algorithms/cosineSim"
+import {cosine_usr_usr, cosine_usr_mov} from "./algorithms/cosineSim"
 
 
 
@@ -25,20 +25,48 @@ export class Entry {
 export class User {
 	id: number;
 	entries: Entry[];
+	avgRating() {
+		let sum = 0
+		for (let i = 0; i < this.entries.length; i++) {
+			sum += this.entries[i].rating
+		}
+		return sum / this.entries.length
+	}
 	constructor(id: number, entries: Entry[]) {
 		this.id = id
-		this.entries = []
+		this.entries = entries
 	}
 }
 
 export class Movie{
 	id: number;
 	entries: Entry[];
+	avgRating() {
+		let sum = 0
+		for (let i = 0; i < this.entries.length; i++) {
+			sum += this.entries[i].rating
+		}
+		return sum / this.entries.length
+	}
 	constructor(id: number, entries: Entry[]) {
 		this.id = id
 		this.entries = []
 	}
 }
+
+export class Dataset {
+	entries: Entry[];
+	users: User[];
+	movies: Movie[];
+	constructor(entries: Entry[], users: User[], movies: Movie[]) {
+		this.entries = entries
+		this.users = users
+		this.movies = movies
+	}
+}
+//Yeah, ik this is a horribly inefficient way of storing the data... ehhh
+
+
 
 /////////////////////DATA INITIALIZATION/////////////////////////////
 
@@ -60,12 +88,14 @@ function dataToArray(input: string) { //Could implement a request num parameter 
 	for (let i = 0; i < entries.length; i++) {
 		if (users.find(user => user.id === entries[i].userId) === undefined) {//Add a new user if they have not yet been found
 			let newUserId = entries[i].userId;
-			let newUserEntries = [];
-			for(let j = 0; j < entries.length; j++) { //Add all entries by this user
-				if (entries[j].userId === newUserId)
-						newUserEntries.push(entries[j]);
+			let newUserEntries: Entry[] = [];
+			for (let j = 0; j < entries.length; j++) { //Add all entries by this user
+				if (entries[j].userId === newUserId) {
+					newUserEntries.push(entries[j]);
+				}
 			}
-			users.push(new User(entries[i].userId, newUserEntries ));
+			users.push(new User(entries[i].userId, newUserEntries));
+			
 		}
 
 		if (movies.find(movie => movie.id === entries[i].movieId) === undefined) {//Add a new movie if they have not yet been found
@@ -79,11 +109,18 @@ function dataToArray(input: string) { //Could implement a request num parameter 
 		}
 	}
 
-	console.log("Users: " + users.length);
-	console.log("Movies: " + movies.length);
-	console.log("Entries: " + entries.length);
 
-	return entries;
+
+
+	let dataset = new Dataset(entries, users, movies);
+
+	console.log("Users: " + dataset.users.length);
+	console.log("Movies: " + dataset.movies.length);
+	console.log("Entries: " + dataset.entries.length);
+
+
+
+	return dataset;
 }
 
 /////////////////////END DATA INITIALIZATION/////////////////////////////
@@ -181,8 +218,6 @@ function runCosineSimilarity(user: User, movie: Movie) {
 
 function runPearsonCorrelation(input: string[]) {
 	let res = input;
-	
-
 	return res;
 }
 
@@ -203,22 +238,39 @@ function App() {
 			dataset = test20;
 		
 		// let testEntries: Entry[] = [];
-		let testEntries = dataToArray(dataset); 
+		let testDataset = dataToArray(dataset); 
+		console.log("Test dataset user 0: " + JSON.stringify(testDataset.users[0].entries));
+		let trainDataset = dataToArray(train);
 		// testEntries.push(dataToArray(dataset)[0]);
-		let trainEntries = dataToArray(train);
+		
 		let predictingEntries: Entry[] = [];
-		for(let i = 0; i < testEntries.length; i++) {
-			if (testEntries[i].rating === 0) {
-				predictingEntries.push(testEntries[i]);
+		for(let i = 0; i < testDataset.entries.length; i++) {
+			if (testDataset.entries[i].rating === 0) {
+				predictingEntries.push(testDataset.entries[i]);
 			}
 		}
 		console.log("Making predictions for " + predictingEntries.length + " entries");
 
 
-		if(algChoice === 0) {
-			// runCosineSimilarity(data[0], data[1], testNum);
+		if (algChoice === 1) {
+
+			console.log(testDataset.users[0].entries);
+			console.log("Cosine similarity between each user: ");
+			for (let i = 0; i < testDataset.users.length; i++) {
+				for (let j = 0; j < testDataset.users.length; j++) {
+					let user1 = testDataset.users[i];
+					let user2 = testDataset.users[j];
+					let res = cosine_usr_usr(user1, user2);
+					console.log("User " + user1.id + " and User " + user2.id + " have similarity of " + res);
+				}
+			}
 		}
-	}
+
+
+			// console.log("Cosine sim between 0 & 1:" + cosine_usr_usr(testDataset.users[1], testDataset.users[2]));
+
+		}
+	
 
 	return (
 		<div style={{ textAlign: 'center', justifyContent: 'center', width: '100vw'}}>
