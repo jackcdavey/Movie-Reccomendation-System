@@ -237,11 +237,8 @@ function App() {
 		else if(testNum === 20)
 			dataset = test20;
 		
-		// let testEntries: Entry[] = [];
 		let testDataset = dataToArray(dataset); 
-		console.log("Test dataset user 0: " + JSON.stringify(testDataset.users[0].entries));
-		let trainDataset = dataToArray(train);
-		// testEntries.push(dataToArray(dataset)[0]);
+		//let trainDataset = dataToArray(train);
 		
 		let predictingEntries: Entry[] = [];
 		for(let i = 0; i < testDataset.entries.length; i++) {
@@ -256,14 +253,22 @@ function App() {
 
 			console.log(testDataset.users[0].entries);
 			console.log("Cosine similarity between each user: ");
+			let max = 0.0;
+			let maxUsera = -1;
+			let maxUserb = -1;
 			for (let i = 0; i < testDataset.users.length; i++) {
 				for (let j = 0; j < testDataset.users.length; j++) {
 					let user1 = testDataset.users[i];
 					let user2 = testDataset.users[j];
 					let res = cosine_usr_usr(user1, user2);
-					console.log("User " + user1.id + " and User " + user2.id + " have similarity of " + res);
+					if (res > max && res< 0.99999999999){
+						max = res;
+						maxUsera = user1.id;
+						maxUserb = user2.id;
+					}
 				}
 			}
+			console.log("Max similarity between users " + maxUsera + " and " + maxUserb + " is " + max);
 		}
 
 
@@ -275,7 +280,7 @@ function App() {
 	return (
 		<div style={{ textAlign: 'center', justifyContent: 'center', width: '100vw'}}>
 			<h2 style={styles.header}>Running Test: {testNum} Using Algorithm: {algChoice} </h2>
-			<button style={{backgroundColor:'green', padding: '2%', borderRadius: '10px', color: 'white', fontWeight: 'bold'}}onClick={() => { startTest() }}>START</button>
+			<button style={{backgroundColor:'green', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontWeight: 'bold'}}onClick={() => { startTest() }}>START</button>
 
 		<div style={{
 			display: 'flex',
@@ -296,12 +301,12 @@ function App() {
 			</div>
 			<div style={{ display: 'flex', flexDirection: "column", alignItems: "center", width: "80%", padding: "2%" }}>
 				<h2 style={styles.header}>Algorithm</h2>
-				<button style={styles.button} onClick={() => {setAlgChoice(1) }}>Cosine</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(2) }}>Pearson</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(3) }}>IUF</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(4) }}>Case Amplification</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(5) }}>Item-based</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(6) }}>Custom</button>
+				<button style={styles.button} onClick={() => {setAlgChoice(1) }}>1. Cosine</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(2) }}>2. Pearson</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(3) }}>3. IUF</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(4) }}>4. Case Amplification</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(5) }}>5. Item-based</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(6) }}>6. Custom</button>
 			</div>
 			</div>
 			</div>
