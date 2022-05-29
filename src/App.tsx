@@ -149,6 +149,7 @@ function getCosine(a: Entry, b: Entry) {
 
 /////////////////////END OPERATIONS/////////////////////////////
 
+
 /////////////////////ALGORITHMS/////////////////////////////
 
 // function getUMCosineSim(user: User, movie: ) { }
@@ -158,63 +159,6 @@ function runCosineSimilarity(user: User, movie: Movie) {
 
 
 }
-// 	// //Iterate through the test data, and find the value that is highest for each userId
-// 	let raw = dataToArray(train, false);
-// 	let trainData = raw[0];
-// 	let testUsers: User[] = [];
-// 	let trainUsers: User[] = [];
-
-// 	let output: Entry[] = [];
-	
-
-// 	//Create a user object for each unique user in the input Arr, and push it to an array of users
-// 	for (let i = 0; i < rated.length; i++) {
-// 		let userId = rated[i].userId;
-// 		let movieId = rated[i].movieId;
-// 		let rating = rated[i].rating;
-
-// 		let user = testUsers.find(user => user.id === userId);
-// 		if (user === undefined) {
-// 			user = new User(userId);
-// 			testUsers.push(user);
-// 		}
-// 		user.entries.push(new Entry(userId, movieId, rating));
-// 	}
-
-// 	//Create a user object for each unique user in the train data, and push it to an array of users
-// 	for (let i = 0; i < trainData.length; i++) {
-// 		let userId = trainData[i].userId;
-// 		let movieId = trainData[i].movieId;
-// 		let rating = trainData[i].rating;
-
-// 		let user = trainUsers.find(user => user.id === userId);
-// 		if (user === undefined) {
-// 			user = new User(userId);
-// 			trainUsers.push(user);
-// 		}
-// 		if(user)
-// 			user.entries.push(new Entry(userId, movieId, rating));
-// 	}
-
-	
-// 	for (let i = 0; i < testUsers.length; i++) {
-// 		let maxSimilarity = 0;
-// 		let closestUserId = -1;
-// 		let testU = testUsers[i].entries;
-// 		for (let j = 0; j < trainUsers.length; j++) {
-// 			let trainU = trainUsers[j].entries;
-// 			let res = getCosine(testU[0], trainU[0]);
-// 			if (res > maxSimilarity) {
-// 				maxSimilarity = res;
-// 				closestUserId = trainUsers[j].id;
-// 			}
-// 		}
-// 		console.log("Max similarity for user " + testUsers[i].id + " is " + maxSimilarity + " with training user " + closestUserId);
-// 		// console.log("Closest user to " + i + " is: " + closestUserId);
-// 	}
-	
-// }
-
 
 function runPearsonCorrelation(input: string[]) {
 	let res = input;
@@ -227,6 +171,17 @@ function runPearsonCorrelation(input: string[]) {
 function App() {
 	const [algChoice, setAlgChoice] = useState(0);
 	const [testNum, setTestNum] = useState(0);
+
+	const downloadTxtFile = () => {
+		const element = document.createElement("a");
+		const file = new Blob(["hello world,\nthis is another line!"], {
+			type: "text/plain"
+		});
+		element.href = URL.createObjectURL(file);
+		element.download = "myFile.txt";
+		document.body.appendChild(element);
+		element.click();
+  	}
 
 	function startTest() {
 		let dataset = '';
@@ -248,6 +203,11 @@ function App() {
 		}
 		console.log("Making predictions for " + predictingEntries.length + " entries");
 
+
+		//For each entry in the predicting entries, find the closest user and make a prediction
+		for (let i = 0; i < predictingEntries.length; i++) {
+			let closestUserId = -1;
+		}
 
 		if (algChoice === 1) {
 
@@ -280,7 +240,7 @@ function App() {
 	return (
 		<div style={{ textAlign: 'center', justifyContent: 'center', width: '100vw'}}>
 			<h2 style={styles.header}>Running Test: {testNum} Using Algorithm: {algChoice} </h2>
-			<button style={{backgroundColor:'green', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontWeight: 'bold'}}onClick={() => { startTest() }}>START</button>
+			<button style={{backgroundColor:'green', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontSize: '30px', fontWeight: 'bold'}}onClick={() => { startTest() }}>START</button>
 
 		<div style={{
 			display: 'flex',
@@ -309,6 +269,7 @@ function App() {
 				<button style={styles.button} onClick={() => { setAlgChoice(6) }}>6. Custom</button>
 			</div>
 			</div>
+			<button style={{ backgroundColor: 'blue', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontSize: '25px', fontWeight: 'bold' }} onClick={downloadTxtFile}>Download Output</button>
 			</div>
 	)
 }
@@ -324,7 +285,7 @@ const styles = {
 	header: {
 		fontSize: '1.5em',
 		fontWeight: 'bold',
-		color: '#FFFFFF',
+		// color: '#FFFFFF',
 		
 		// textAlign: 'center'
 	},
