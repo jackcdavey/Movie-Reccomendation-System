@@ -1,4 +1,4 @@
-import { User, Movie, Dataset } from '../App';
+import { User, Movie, Dataset } from '../objects';
 
 export function cosine_usr_usr(userA: User, userB: User) {
     let userAVal = 0.0;
@@ -32,7 +32,7 @@ export function cosine_usr_mov(user: User, movie: Movie, dataset: Dataset) {
             //Check if the user in the dataset has a rating for the input movie
             let has_rating = false;
             for (let j = 0; j < dataset.users[i].entries.length; j++) {
-                if (dataset.users[i].entries[j].movieId == movie.id) {
+                if (dataset.users[i].entries[j].movieId == movie.id && dataset.users[i].entries[j].rating > 0) {
                     has_rating = true;
                     break;
                 }
@@ -48,7 +48,7 @@ export function cosine_usr_mov(user: User, movie: Movie, dataset: Dataset) {
     if (closest_user != user) {
         for (let i = 0; i < closest_user.entries.length; i++) {
             if (closest_user.entries[i].movieId == movie.id) {
-                console.log("The most likely rating of movie: " + movie.id + "by user: "+ user.id + "is: " +closest_user.entries[i].rating);
+                console.log("The most likely rating of movie: " + movie.id + " by user: "+ user.id + " is: " + closest_user.entries[i].rating);
             }
         }
     }

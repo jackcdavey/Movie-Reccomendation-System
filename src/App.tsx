@@ -6,66 +6,8 @@ import test10 from "./data/test10"
 import test20 from "./data/test20"
 import train from "./data/train"
 
+import {Entry, User, Movie, Dataset} from "./objects"
 import {cosine_usr_usr, cosine_usr_mov} from "./algorithms/cosineSim"
-
-
-
-export class Entry {
-	userId: number;
-	movieId: number;
-	rating: number;
-
-	constructor(userId: number, movieId: number, rating: number) {
-		this.userId = userId
-		this.movieId = movieId
-		this.rating = rating
-	}
-}
-
-export class User {
-	id: number;
-	entries: Entry[];
-	avgRating() {
-		let sum = 0
-		for (let i = 0; i < this.entries.length; i++) {
-			sum += this.entries[i].rating
-		}
-		return sum / this.entries.length
-	}
-	constructor(id: number, entries: Entry[]) {
-		this.id = id
-		this.entries = entries
-	}
-}
-
-export class Movie{
-	id: number;
-	entries: Entry[];
-	avgRating() {
-		let sum = 0
-		for (let i = 0; i < this.entries.length; i++) {
-			sum += this.entries[i].rating
-		}
-		return sum / this.entries.length
-	}
-	constructor(id: number, entries: Entry[]) {
-		this.id = id
-		this.entries = []
-	}
-}
-
-export class Dataset {
-	entries: Entry[];
-	users: User[];
-	movies: Movie[];
-	constructor(entries: Entry[], users: User[], movies: Movie[]) {
-		this.entries = entries
-		this.users = users
-		this.movies = movies
-	}
-}
-//Yeah, ik this is a horribly inefficient way of storing the data... ehhh
-
 
 
 /////////////////////DATA INITIALIZATION/////////////////////////////
@@ -126,33 +68,8 @@ function dataToArray(input: string) { //Could implement a request num parameter 
 /////////////////////END DATA INITIALIZATION/////////////////////////////
 
 
-/////////////////////OPERATIONS/////////////////////////////
-function getDotProduct(a: Entry, b: Entry) {
-	let sum = 0;
-	for (let i = 0; i < a.rating; i++) {
-		sum += a.rating * b.rating;
-	}
-	return sum;
-}
-
-function getMagnitude(input: Entry) {
-	let sum = 0;
-	for (let i = 0; i < input.rating; i++) {
-		sum += Math.pow(input.rating, 2);
-	}
-	return Math.sqrt(sum);
-}
-
-function getCosine(a: Entry, b: Entry) {
-	return getDotProduct(a, b) / (getMagnitude(a) * getMagnitude(b));
-}
-
-/////////////////////END OPERATIONS/////////////////////////////
-
 
 /////////////////////ALGORITHMS/////////////////////////////
-
-// function getUMCosineSim(user: User, movie: ) { }
 
 
 function runCosineSimilarity(user: User, movie: Movie) {
@@ -204,31 +121,34 @@ function App() {
 		console.log("Making predictions for " + predictingEntries.length + " entries");
 
 
-		//For each entry in the predicting entries, find the closest user and make a prediction
-		for (let i = 0; i < predictingEntries.length; i++) {
-			let closestUserId = -1;
-		}
+		//For each entry in the predicting entries, pass the user and movie to the cosine similarity function
+		
 
 		if (algChoice === 1) {
+			for (let i = 0; i < predictingEntries.length; i++) {
+			let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
+			let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
+			cosine_usr_mov(user, movie, testDataset);
+		}
 
-			console.log(testDataset.users[0].entries);
-			console.log("Cosine similarity between each user: ");
-			let max = 0.0;
-			let maxUsera = -1;
-			let maxUserb = -1;
-			for (let i = 0; i < testDataset.users.length; i++) {
-				for (let j = 0; j < testDataset.users.length; j++) {
-					let user1 = testDataset.users[i];
-					let user2 = testDataset.users[j];
-					let res = cosine_usr_usr(user1, user2);
-					if (res > max && res< 0.99999999999){
-						max = res;
-						maxUsera = user1.id;
-						maxUserb = user2.id;
-					}
-				}
-			}
-			console.log("Max similarity between users " + maxUsera + " and " + maxUserb + " is " + max);
+			// console.log(testDataset.users[0].entries);
+			// console.log("Cosine similarity between each user: ");
+			// let max = 0.0;
+			// let maxUsera = -1;
+			// let maxUserb = -1;
+			// for (let i = 0; i < testDataset.users.length; i++) {
+			// 	for (let j = 0; j < testDataset.users.length; j++) {
+			// 		let user1 = testDataset.users[i];
+			// 		let user2 = testDataset.users[j];
+			// 		let res = cosine_usr_usr(user1, user2);
+			// 		if (res > max && res< 0.99999999999){
+			// 			max = res;
+			// 			maxUsera = user1.id;
+			// 			maxUserb = user2.id;
+			// 		}
+			// 	}
+			// }
+			// console.log("Max similarity between users " + maxUsera + " and " + maxUserb + " is " + max);
 		}
 
 
