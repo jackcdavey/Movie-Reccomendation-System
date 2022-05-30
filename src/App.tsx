@@ -136,7 +136,7 @@ function App() {
 				// console.log(predictedEntries[i].userId + ", " + predictedEntries[i].movieId + ", " + predictedEntries[i].rating);
 			}
 
-			//generateOutput(testDataset, predictedEntries);
+			generateOutput(testDataset, predictedEntries);
 		}
 
 
