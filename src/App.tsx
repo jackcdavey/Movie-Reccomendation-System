@@ -7,7 +7,9 @@ import test20 from "./data/test20"
 import train from "./data/train"
 
 import {Entry, User, Movie, Dataset} from "./objects"
-import {cosine_usr_usr, cosine_usr_mov} from "./algorithms/cosineSim"
+import { cosine_usr_usr, cosine_usr_mov } from "./algorithms/cosineSim"
+
+import generateOutput from "./generate-output"
 
 
 /////////////////////DATA INITIALIZATION/////////////////////////////
@@ -102,18 +104,18 @@ function App() {
 
 	function startTest() {
 		let dataset = '';
-		if(testNum === 5)
+		if (testNum === 5)
 			dataset = test5;
-		else if(testNum === 10)
+		else if (testNum === 10)
 			dataset = test10;
-		else if(testNum === 20)
+		else if (testNum === 20)
 			dataset = test20;
 		
-		let testDataset = dataToArray(dataset); 
-		//let trainDataset = dataToArray(train);
+		let testDataset = dataToArray(dataset);
+		let trainDataset = dataToArray(train);
 		
 		let predictingEntries: Entry[] = [];
-		for(let i = 0; i < testDataset.entries.length; i++) {
+		for (let i = 0; i < testDataset.entries.length; i++) {
 			if (testDataset.entries[i].rating === 0) {
 				predictingEntries.push(testDataset.entries[i]);
 			}
@@ -125,37 +127,41 @@ function App() {
 		
 
 		if (algChoice === 1) {
+			let predictedEntries: Entry[] = [];
 			for (let i = 0; i < predictingEntries.length; i++) {
-			let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
-			let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
-			cosine_usr_mov(user, movie, testDataset);
-		}
+				let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
+				let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
+				let combined_datasets: Dataset[] = [testDataset, trainDataset];
+				predictedEntries.push(cosine_usr_mov(user, movie, combined_datasets));
+				// console.log(predictedEntries[i].userId + ", " + predictedEntries[i].movieId + ", " + predictedEntries[i].rating);
+			}
 
-			// console.log(testDataset.users[0].entries);
-			// console.log("Cosine similarity between each user: ");
-			// let max = 0.0;
-			// let maxUsera = -1;
-			// let maxUserb = -1;
-			// for (let i = 0; i < testDataset.users.length; i++) {
-			// 	for (let j = 0; j < testDataset.users.length; j++) {
-			// 		let user1 = testDataset.users[i];
-			// 		let user2 = testDataset.users[j];
-			// 		let res = cosine_usr_usr(user1, user2);
-			// 		if (res > max && res< 0.99999999999){
-			// 			max = res;
-			// 			maxUsera = user1.id;
-			// 			maxUserb = user2.id;
-			// 		}
-			// 	}
-			// }
-			// console.log("Max similarity between users " + maxUsera + " and " + maxUserb + " is " + max);
+			//generateOutput(testDataset, predictedEntries);
 		}
 
 
-			// console.log("Cosine sim between 0 & 1:" + cosine_usr_usr(testDataset.users[1], testDataset.users[2]));
 
-		}
-	
+
+		// console.log(testDataset.users[0].entries);
+		// console.log("Cosine similarity between each user: ");
+		// let max = 0.0;
+		// let maxUsera = -1;
+		// let maxUserb = -1;
+		// for (let i = 0; i < testDataset.users.length; i++) {
+		// 	for (let j = 0; j < testDataset.users.length; j++) {
+		// 		let user1 = testDataset.users[i];
+		// 		let user2 = testDataset.users[j];
+		// 		let res = cosine_usr_usr(user1, user2);
+		// 		if (res > max && res< 0.99999999999){
+		// 			max = res;
+		// 			maxUsera = user1.id;
+		// 			maxUserb = user2.id;
+		// 		}
+		// 	}
+		// }
+		// console.log("Max similarity between users " + maxUsera + " and " + maxUserb + " is " + max);
+	}
+
 
 	return (
 		<div style={{ textAlign: 'center', justifyContent: 'center', width: '100vw'}}>
