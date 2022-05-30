@@ -14,11 +14,15 @@ export class User {
 	id: number;
 	entries: Entry[];
 	avgRating() {
-		let sum = 0
-		for (let i = 0; i < this.entries.length; i++) {
-			sum += this.entries[i].rating
+        let sum = 0;
+        let rated_movies = 0;
+        for (let i = 0; i < this.entries.length; i++) {
+            if (this.entries[i].rating != 0) {
+                sum += this.entries[i].rating
+                rated_movies++;
+            }
 		}
-		return sum / this.entries.length
+		return sum / rated_movies;
 	}
 	constructor(id: number, entries: Entry[]) {
 		this.id = id

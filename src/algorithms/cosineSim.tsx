@@ -72,7 +72,16 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
             }
         }
         //Generate a new entry object for the input user and movie based on the predction
-        new_entry.rating = predicted_rating;
+        if (predicted_rating > 0)
+            new_entry.rating = predicted_rating;
+        else if (Math.round(user.avgRating()) > 0) {
+            new_entry.rating = Math.round(user.avgRating());
+            console.log("No data, using avg rating: " + new_entry.rating);
+        }
+        else{
+            new_entry.rating = 1;
+            console.log("No data, using low avg rating: " + new_entry.rating);
+        }
         new_entry.userId = user.id;
         new_entry.movieId = movie.id;
         console.log(new_entry.userId + ", " + new_entry.movieId + ", " + new_entry.rating);
