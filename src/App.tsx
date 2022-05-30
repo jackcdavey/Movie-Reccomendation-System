@@ -90,14 +90,15 @@ function runPearsonCorrelation(input: string[]) {
 function App() {
 	const [algChoice, setAlgChoice] = useState(0);
 	const [testNum, setTestNum] = useState(0);
+	const [outputFileString, setOutputFileString] = useState("");
 
-	const downloadTxtFile = () => {
+	const downloadTxtFile = (input: string) => {
 		const element = document.createElement("a");
-		const file = new Blob(["hello world,\nthis is another line!"], {
+		const file = new Blob([input], {
 			type: "text/plain"
 		});
 		element.href = URL.createObjectURL(file);
-		element.download = "myFile.txt";
+		element.download = "result" + testNum + ".txt";
 		document.body.appendChild(element);
 		element.click();
   	}
@@ -136,7 +137,7 @@ function App() {
 				// console.log(predictedEntries[i].userId + ", " + predictedEntries[i].movieId + ", " + predictedEntries[i].rating);
 			}
 
-			generateOutput(testDataset, predictedEntries);
+			setOutputFileString(generateOutput(testDataset, predictedEntries));
 		}
 
 
@@ -195,7 +196,7 @@ function App() {
 				<button style={styles.button} onClick={() => { setAlgChoice(6) }}>6. Custom</button>
 			</div>
 			</div>
-			<button style={{ backgroundColor: 'blue', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontSize: '25px', fontWeight: 'bold' }} onClick={downloadTxtFile}>Download Output</button>
+			<button style={{ backgroundColor: 'blue', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontSize: '25px', fontWeight: 'bold' }} onClick={() => downloadTxtFile(outputFileString)}>Download Output</button>
 			</div>
 	)
 }
