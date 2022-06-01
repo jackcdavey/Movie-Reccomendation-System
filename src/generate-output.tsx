@@ -13,7 +13,7 @@ export default function generateOutput(dataset: Dataset, entries: Entry[]) {
         let new_entry_string = dataset.entries[i].userId + " " + dataset.entries[i].movieId + " " + dataset.entries[i].rating + "\n";
         output = output + new_entry_string;
     }
-    console.log(output);
+    // console.log(output);
     return output;
 
 }
