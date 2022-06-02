@@ -129,15 +129,19 @@ function App() {
 
 		if (algChoice === 1) {
 			let predictedEntries: Entry[] = [];
+			let output = "";
 			for (let i = 0; i < predictingEntries.length; i++) {
 				let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
 				let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
 				let combined_datasets: Dataset[] = [testDataset, trainDataset];
 				predictedEntries.push(cosine_usr_mov(user, movie, combined_datasets));
-				// console.log(predictedEntries[i].userId + ", " + predictedEntries[i].movieId + ", " + predictedEntries[i].rating);
-			}
+				output += (predictedEntries[i].userId + " " + predictedEntries[i].movieId + " " + predictedEntries[i].rating + "\n");
 
-			setOutputFileString(generateOutput(testDataset, predictedEntries));
+				
+			}
+			// console.log(output);
+
+			setOutputFileString(output);
 		}
 
 
