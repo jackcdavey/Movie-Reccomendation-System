@@ -28,20 +28,8 @@ export function cosine_usr_usr(userA: User, userB: User) {
     return similarity;
 }
 
-export function get_cosine(vectorA: number[], vectorB: number[]) {
-    let dot_product = 0.0;
-    let normA = 0.0;
-    let normB = 0.0;
-    for (let i = 0; i < vectorA.length; i++) {
-        dot_product += vectorA[i] * vectorB[i];
-        normA += Math.pow(vectorA[i], 2);
-        normB += Math.pow(vectorB[i], 2);
-    }
-    return dot_product / (Math.sqrt(normA) * Math.sqrt(normB));
-}
 
-
-//Predicts the rating of a movie by a user based on the rating of the most similar user that has rated the movie
+//Predicts a user's rating for a movie 
 export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     let predicted_rating = 0;
     let new_entry: Entry = new Entry(0, 0, 0);
@@ -62,7 +50,8 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
             }
         }
     }
-    //console.log("Movie " + movie.id + " has been rated by " + rated_by_users.length + " users");
+    // console.log("\nMovie " + movie.id + " has been rated by " + rated_by_users.length + " users");
+    
     //Then, find all users that have rated at least x movies in common with the target user
     for (let i = 0; i < rated_by_users.length; i++) {
         let x = 2;
@@ -73,7 +62,7 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
             candidate_sim_users.push(rated_by_users[i]);
         }
     }
-    //console.log("Of those users, " + candidate_sim_users.length + " have rated at least " + 2 + " movies in common");
+    // console.log("Of those users, " + candidate_sim_users.length + " have rated at least " + 2 + " movies in common with user " + user.id);
 
     //Next, compute the cosine similarity between the target user and each of the candidate users, and sort the candidate users by similarity
     let candidate_sim_users_sorted: User[] = [];
@@ -87,30 +76,43 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
         }
         candidate_sim_users_sorted.splice(index, 0, candidate_sim_users[i]);
     }
-    //console.log("Sorted candidate users: ");
-    for (let i = 0; i < candidate_sim_users_sorted.length; i++) {
-        //console.log("User: " + candidate_sim_users_sorted[i].id);
-        //console.log("Similarity: " + cosine_usr_usr(user, candidate_sim_users_sorted[i]));
-    }
+
+
+    // console.log("Sorted candidate users: ");
+    // for (let i = 0; i < candidate_sim_users_sorted.length; i++) {
+    //     console.log("User: " + candidate_sim_users_sorted[i].id);
+    //     console.log("Similarity: " + cosine_usr_usr(user, candidate_sim_users_sorted[i]));
+    //     console.log("Gave movie " + movie.id + " a rating of " + candidate_sim_users_sorted[i].entries.filter(entry => entry.movieId === movie.id)[0].rating);
+    // }
 
         
         
 
     //Finally, use the k most similar users' weighted ratings of the target movie to predict the target user's rating
     let k = user.entries.filter(entry => entry.rating > 0).length;
+    
+    let sum_of_weights = 0;
+    let sum_of_ratings = 0;
+
+
     for (let i = 0; i < k; i++) {
         if (candidate_sim_users_sorted[i] !== undefined) {
             let sim_user = candidate_sim_users_sorted[i];
             let sim_user_rating = sim_user.entries.filter(entry => entry.movieId == movie.id)[0].rating;
             let sim_user_weight = cosine_usr_usr(user, sim_user);
-            predicted_rating += (sim_user_rating * sim_user_weight)*(1/k);
+            sum_of_weights += sim_user_weight;
+            sum_of_ratings += sim_user_rating * sim_user_weight;
         } else
+            k = i;
             break;
     }
+    // console.log("Using " + k + " most similar users");
+
+    predicted_rating = (sum_of_ratings / sum_of_weights) ;
 
     if (candidate_sim_users.length < 1) {
         predicted_rating = user.avgRating();
-        //console.log("Using average rating of " + predicted_rating);
+        // console.log("No similar users available, using average rating of " + predicted_rating);
     }
 
     if (predicted_rating > 4.5)
@@ -125,6 +127,7 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     new_entry.movieId = movie.id;
     new_entry.rating = predicted_rating;
 
+    // console.log("Predicted rating for user " + user.id + " for movie " + movie.id + ": " + predicted_rating);
     console.log("Prediction complete");
     return new_entry;
 }
