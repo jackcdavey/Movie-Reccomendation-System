@@ -1,59 +1,63 @@
 import { User, Movie, Dataset, Entry } from '../objects';
 
 //Calculates the cosine similarity between two users
-export function pearson_usr_usr(userA: User, userB: User) {
-    let userAVal = 0.0;
-    let userBVal = 0.0;
+function cosine_mov_mov(movieA: Movie, movieB: Movie) {
+    let movieAVal = 0.0;
+    let movieBVal = 0.0;
     let dot_product = 0.0;
+        
 
-    for (let i = 0; i < userA.entries.length; i++) {
+    for (let i = 0; i < movieA.entries.length; i++) {
         let a = 0;
         let b = 0;
-        if (userA.entries[i].rating > 0) {
-            a = userA.entries[i].rating;
-            for (let j = 0; j < userB.entries.length; j++) {
-                if(userB.entries[j].movieId === userA.entries[i].movieId) {
-                    b = userB.entries[j].rating;
-                    // console.log("Comparing user " + userA.id + "'s rating of "+ a + " for movie " + userA.entries[i].movieId + " and user " + userB.id + "'s rating of " + b + " for movie " + userB.entries[j].movieId);
+        if (movieA.entries[i].rating > 0) {
+            a = movieA.entries[i].rating;
+            for (let j = 0; j < movieB.entries.length; j++) {
+                if(movieB.entries[j].movieId === movieA.entries[i].movieId) {
+                    b = movieB.entries[j].rating;
+                    // console.log("Comparing user " + movieA.id + "'s rating of "+ a + " for movie " + movieA.entries[i].movieId + " and user " + movieB.id + "'s rating of " + b + " for movie " + movieB.entries[j].movieId);
                     break;
                 }
             }
             if (a > 0 && b > 0) {
-            //     if (userA.id === 300 && userB.id === 90) {
+            //     if (movieA.id === 300 && movieB.id === 90) {
                 
                 // console.log("Comparing ratings: " + a + " and " + b);
             // }
                 dot_product += a * b;
-                userAVal += a * a;
-                userBVal += b * b;
+                movieAVal += a * a;
+                movieBVal += b * b;
             }
         }
     }
-    if (userAVal === 0.0 || userBVal === 0.0)
+    if (movieAVal === 0.0 || movieBVal === 0.0)
         return 0;
     
-    // if (userA.id === 300 && userB.id === 90) 
-        // console.log("dot product: " + dot_product + " userAVal: " + userAVal + " userBVal: " + userBVal);
+    // if (movieA.id === 300 && movieB.id === 90) 
+        // console.log("dot product: " + dot_product + " movieAVal: " + movieAVal + " movieBVal: " + movieBVal);
     
-    let similarity = dot_product / (Math.sqrt(userAVal) * Math.sqrt(userBVal));
+    let similarity = dot_product / (Math.sqrt(movieAVal) * Math.sqrt(movieBVal));
 
-    // if (similarity > 1) {
-    //     console.log(similarity);
-    //     similarity = 0.1;
-        
-    // }
-    if (similarity <= 0) {
+    if (similarity >= 1)
+        similarity = 0.5;
+    if(similarity <= 0) 
         similarity = 0.1;
-    }
 
     return similarity;
 }
 
 
-//Predicts a user's rating for a movie 
-export function pearson_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
+//Predicts a user's rating for a movie based on the similarity between the movie and other movies liked by the taget user
+export function cosine_mov_usr(movie: Movie, user: User,  datasets: Dataset[]) {
     let predicted_rating = 0;
     let new_entry: Entry = new Entry(0, 0, 0);
+
+
+    //First, get the IDs of all the users that have rated the target movie
+    let target_movie_rated_users = movie.entries.filter(entry => entry.rating > 0);
+    let target_movie_rated_users_ids = target_movie_rated_users.map(entry => entry.userId);
+
+    
 
 
     //Get the IDs of all the movies that the target user has rated
@@ -63,7 +67,7 @@ export function pearson_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     let rated_by_users: User[] = [];
     let candidate_sim_users: User[] = [];
 
-    //First, find all users that have rated the target movie
+    //First, find all movies rated by the target user
     for (let i = 0; i < datasets[1].users.length; i++) {
         for(let j = 0; j < datasets[1].users[i].entries.length; j++) {
             if (datasets[1].users[i].entries[j].movieId === movie.id) {
@@ -88,10 +92,10 @@ export function pearson_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     //Next, compute the cosine similarity between the target user and each of the candidate users, and sort the candidate users by similarity
     let candidate_sim_users_sorted: User[] = [];
     for (let i = 0; i < candidate_sim_users.length; i++) {
-        let sim = pearson_usr_usr(user, candidate_sim_users[i]);
+        let sim = cosine_mov_mov(user, candidate_sim_users[i]);
         let index = 0;
         if (candidate_sim_users.length > 0) {
-            while (index < candidate_sim_users.length && sim < pearson_usr_usr(user, rated_by_users[index]) ) {
+            while (index < candidate_sim_users.length && sim < cosine_mov_mov(user, rated_by_users[index]) ) {
                 index++;
             }
         }
@@ -109,7 +113,7 @@ export function pearson_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
         
 
     //Finally, use the k most similar users' weighted ratings of the target movie to predict the target user's rating
-    let k = target_user_rated_movies.length * 2;
+    let k = candidate_sim_users.length;
     
     let sum_of_weights = 0;
     let sum_of_ratings = 0;
@@ -118,8 +122,8 @@ export function pearson_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     for (let i = 0; i < k; i++) {
         if (candidate_sim_users_sorted[i] !== undefined) {
             let sim_user = candidate_sim_users_sorted[i];
-            let sim_user_rating = sim_user.entries.filter(entry => entry.movieId === movie.id)[0].rating - sim_user.avgRating();
-            let sim_user_weight = pearson_usr_usr(user, sim_user);
+            let sim_user_rating = sim_user.entries.filter(entry => entry.movieId === movie.id)[0].rating;
+            let sim_user_weight = cosine_mov_mov(user, sim_user);
             sum_of_weights += sim_user_weight;
             sum_of_ratings += sim_user_rating * sim_user_weight;
             // console.log("Weight sum: " + sum_of_weights + " rating sum: " + sum_of_ratings);
@@ -139,14 +143,13 @@ export function pearson_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     } else
         predicted_rating = sum_of_ratings / sum_of_weights ;
 
-
-    
-    predicted_rating = Math.round(predicted_rating + user.avgRating());
-
     if (predicted_rating > 4.5)
         predicted_rating = 5;
     else if (predicted_rating < 1.5)
         predicted_rating = 1;
+    
+    predicted_rating = Math.round(predicted_rating);
+
 
     new_entry.userId = user.id;
     new_entry.movieId = movie.id;

@@ -204,6 +204,24 @@ function App() {
 			setOutputFileString(output);
 		}
 
+		if (algChoice === 5) {
+			let predictedEntries: Entry[] = [];
+			let output = "";
+			for (let i = 0; i < predictingEntries.length; i++) {
+				let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
+				let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
+				let combined_datasets: Dataset[] = [testDataset, trainDataset];
+				predictedEntries.push(caseAmp_usr_mov(user, movie, combined_datasets));
+				setIsReady(true);
+				output += (predictedEntries[i].userId + " " + predictedEntries[i].movieId + " " + predictedEntries[i].rating + "\n");
+
+				
+			}
+			// console.log(output);
+
+			setOutputFileString(output);
+		}
+
 
 
 

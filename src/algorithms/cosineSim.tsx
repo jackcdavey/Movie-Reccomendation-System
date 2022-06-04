@@ -38,10 +38,10 @@ export function cosine_usr_usr(userA: User, userB: User) {
     
     let similarity = dot_product / (Math.sqrt(userAVal) * Math.sqrt(userBVal));
 
-    if (similarity >= 1)
-        similarity = 0.5;
-    if(similarity <= 0) 
-        similarity = 0.1;
+    // if (similarity >= 1)
+    //     similarity = 0.5;
+    // if(similarity <= 0) 
+    //     similarity = 0.1;
 
     return similarity;
 }
@@ -106,7 +106,7 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
         
 
     //Finally, use the k most similar users' weighted ratings of the target movie to predict the target user's rating
-    let k = candidate_sim_users.length;
+    let k = target_user_rated_movies.length*3;
     
     let sum_of_weights = 0;
     let sum_of_ratings = 0;
