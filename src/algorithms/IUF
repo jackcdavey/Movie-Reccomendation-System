@@ -1,0 +1,5 @@
+
+
+export function inverse_user_frequency(user: User, movie: Movie, datasets: Dataset[]) {
+    let predicted_rating = 0;
+    let new_entry: Entry = new Entry(0, 0, 0);

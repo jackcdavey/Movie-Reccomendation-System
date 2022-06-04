@@ -8,6 +8,8 @@ import train from "./data/train"
 
 import {Entry, User, Movie, Dataset} from "./objects"
 import { cosine_usr_usr, cosine_usr_mov } from "./algorithms/cosineSim"
+import { pearson_usr_usr, pearson_usr_mov } from "./algorithms/pearson"
+import { caseAmp_usr_mov } from "./algorithms/caseAmplification"
 
 import generateOutput from "./generate-output"
 
@@ -91,8 +93,10 @@ function App() {
 	const [algChoice, setAlgChoice] = useState(0);
 	const [testNum, setTestNum] = useState(0);
 	const [outputFileString, setOutputFileString] = useState("");
+	const [isReady, setIsReady] = useState(false);
 
 	const downloadTxtFile = (input: string) => {
+		setIsReady(false);
 		const element = document.createElement("a");
 		const file = new Blob([input], {
 			type: "text/plain"
@@ -104,6 +108,7 @@ function App() {
   	}
 
 	function startTest() {
+		setIsReady(false);
 		let dataset = '';
 		if (testNum === 5)
 			dataset = test5;
@@ -135,6 +140,61 @@ function App() {
 				let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
 				let combined_datasets: Dataset[] = [testDataset, trainDataset];
 				predictedEntries.push(cosine_usr_mov(user, movie, combined_datasets));
+				setIsReady(true);
+				output += (predictedEntries[i].userId + " " + predictedEntries[i].movieId + " " + predictedEntries[i].rating + "\n");
+
+				
+			}
+			// console.log(output);
+
+			setOutputFileString(output);
+		}
+
+		if (algChoice === 2) {
+			let predictedEntries: Entry[] = [];
+			let output = "";
+			for (let i = 0; i < predictingEntries.length; i++) {
+				let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
+				let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
+				let combined_datasets: Dataset[] = [testDataset, trainDataset];
+				predictedEntries.push(pearson_usr_mov(user, movie, combined_datasets));
+				setIsReady(true);
+				output += (predictedEntries[i].userId + " " + predictedEntries[i].movieId + " " + predictedEntries[i].rating + "\n");
+
+				
+			}
+			// console.log(output);
+
+			setOutputFileString(output);
+		}
+
+		if (algChoice === 3) {
+			// let predictedEntries: Entry[] = [];
+			// let output = "";
+			// for (let i = 0; i < predictingEntries.length; i++) {
+			// 	let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
+			// 	let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
+			// 	let combined_datasets: Dataset[] = [testDataset, trainDataset];
+			// 	predictedEntries.push(pearson_usr_mov(user, movie, combined_datasets));
+			// 	setIsReady(true);
+			// 	output += (predictedEntries[i].userId + " " + predictedEntries[i].movieId + " " + predictedEntries[i].rating + "\n");
+
+				
+			// }
+			// // console.log(output);
+
+			// setOutputFileString(output);
+		}
+
+		if (algChoice === 4) {
+			let predictedEntries: Entry[] = [];
+			let output = "";
+			for (let i = 0; i < predictingEntries.length; i++) {
+				let user = testDataset.users.find(user => user.id === predictingEntries[i].userId)!;
+				let movie = testDataset.movies.find(movie => movie.id === predictingEntries[i].movieId)!;
+				let combined_datasets: Dataset[] = [testDataset, trainDataset];
+				predictedEntries.push(caseAmp_usr_mov(user, movie, combined_datasets));
+				setIsReady(true);
 				output += (predictedEntries[i].userId + " " + predictedEntries[i].movieId + " " + predictedEntries[i].rating + "\n");
 
 				
@@ -192,15 +252,15 @@ function App() {
 			</div>
 			<div style={{ display: 'flex', flexDirection: "column", alignItems: "center", width: "80%", padding: "2%" }}>
 				<h2 style={styles.header}>Algorithm</h2>
-				<button style={styles.button} onClick={() => {setAlgChoice(1) }}>1. Cosine</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(2) }}>2. Pearson</button>
+				<button style={styles.button} onClick={() => {setAlgChoice(1) }}>1. User-Based Cosine</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(2) }}>2. User-Based Pearson</button>
 				<button style={styles.button} onClick={() => { setAlgChoice(3) }}>3. IUF</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(4) }}>4. Case Amplification</button>
-				<button style={styles.button} onClick={() => { setAlgChoice(5) }}>5. Item-based</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(4) }}>4. Case Modification</button>
+				<button style={styles.button} onClick={() => { setAlgChoice(5) }}>5. Item-based Cosine</button>
 				<button style={styles.button} onClick={() => { setAlgChoice(6) }}>6. Custom</button>
 			</div>
 			</div>
-			<button style={{ backgroundColor: 'blue', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontSize: '25px', fontWeight: 'bold' }} onClick={() => downloadTxtFile(outputFileString)}>Download Output</button>
+			<button style={isReady ? { backgroundColor: 'blue', padding: '2%', width: '25vw', borderRadius: '10px', color: 'white', fontSize: '25px', fontWeight: 'bold',  } : {backgroundColor: 'gray'}} disabled={!isReady} onClick={() => downloadTxtFile(outputFileString)}>Download Output {testNum}</button>
 			</div>
 	)
 }

@@ -1,11 +1,10 @@
 import { User, Movie, Dataset, Entry } from '../objects';
 
 //Calculates the cosine similarity between two users
-export function cosine_usr_usr(userA: User, userB: User) {
+function pearson_usr_usr(userA: User, userB: User) {
     let userAVal = 0.0;
     let userBVal = 0.0;
     let dot_product = 0.0;
-        
 
     for (let i = 0; i < userA.entries.length; i++) {
         let a = 0;
@@ -48,7 +47,7 @@ export function cosine_usr_usr(userA: User, userB: User) {
 
 
 //Predicts a user's rating for a movie 
-export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
+export function caseAmp_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     let predicted_rating = 0;
     let new_entry: Entry = new Entry(0, 0, 0);
 
@@ -85,10 +84,10 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     //Next, compute the cosine similarity between the target user and each of the candidate users, and sort the candidate users by similarity
     let candidate_sim_users_sorted: User[] = [];
     for (let i = 0; i < candidate_sim_users.length; i++) {
-        let sim = cosine_usr_usr(user, candidate_sim_users[i]);
+        let sim = pearson_usr_usr(user, candidate_sim_users[i]);
         let index = 0;
         if (candidate_sim_users.length > 0) {
-            while (index < candidate_sim_users.length && sim < cosine_usr_usr(user, rated_by_users[index]) ) {
+            while (index < candidate_sim_users.length && sim < pearson_usr_usr(user, rated_by_users[index]) ) {
                 index++;
             }
         }
@@ -115,8 +114,11 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     for (let i = 0; i < k; i++) {
         if (candidate_sim_users_sorted[i] !== undefined) {
             let sim_user = candidate_sim_users_sorted[i];
-            let sim_user_rating = sim_user.entries.filter(entry => entry.movieId === movie.id)[0].rating;
-            let sim_user_weight = cosine_usr_usr(user, sim_user);
+            let sim_user_rating = sim_user.entries.filter(entry => entry.movieId === movie.id)[0].rating - sim_user.avgRating();
+            let sim_user_weight = pearson_usr_usr(user, sim_user);
+            // console.log("Prev sim_user_weight: " + sim_user_weight);
+            sim_user_weight = sim_user_weight * Math.pow(Math.abs(sim_user_weight), 1.5);
+            // console.log("Amp sim_user_weight: " + sim_user_weight);
             sum_of_weights += sim_user_weight;
             sum_of_ratings += sim_user_rating * sim_user_weight;
             // console.log("Weight sum: " + sum_of_weights + " rating sum: " + sum_of_ratings);
@@ -136,13 +138,14 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     } else
         predicted_rating = sum_of_ratings / sum_of_weights ;
 
+
+    
+    predicted_rating = Math.round(predicted_rating + user.avgRating());
+
     if (predicted_rating > 4.5)
         predicted_rating = 5;
     else if (predicted_rating < 1.5)
         predicted_rating = 1;
-    
-    predicted_rating = Math.round(predicted_rating);
-
 
     new_entry.userId = user.id;
     new_entry.movieId = movie.id;
