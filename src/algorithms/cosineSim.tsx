@@ -5,26 +5,44 @@ export function cosine_usr_usr(userA: User, userB: User) {
     let userAVal = 0.0;
     let userBVal = 0.0;
     let dot_product = 0.0;
+        
 
     for (let i = 0; i < userA.entries.length; i++) {
-        if (userA.entries[i] !== undefined && userB.entries[i] !== undefined && userA.entries[i].rating > 0 && userB.entries[i].rating > 0) {
-                let movie_id = userA.entries[i].movieId;
-                let a = userA.entries.filter(entry => entry.movieId === movie_id)[0].rating;
-                let b = -1;
+        let a = 0;
+        let b = 0;
+        if (userA.entries[i].rating > 0) {
+            a = userA.entries[i].rating;
             for (let j = 0; j < userB.entries.length; j++) {
-                if (userB.entries[j].movieId === movie_id) {
+                if(userB.entries[j].movieId === userA.entries[i].movieId) {
                     b = userB.entries[j].rating;
+                    // console.log("Comparing user " + userA.id + "'s rating of "+ a + " for movie " + userA.entries[i].movieId + " and user " + userB.id + "'s rating of " + b + " for movie " + userB.entries[j].movieId);
                     break;
                 }
             }
-                userAVal += Math.pow(a, 2);
-                userBVal += Math.pow(b, 2);
-                dot_product += (a * b);
+            if (a > 0 && b > 0) {
+            //     if (userA.id === 300 && userB.id === 90) {
+                
+                // console.log("Comparing ratings: " + a + " and " + b);
+            // }
+                dot_product += a * b;
+                userAVal += a * a;
+                userBVal += b * b;
+            }
         }
     }
-    userAVal = Math.sqrt(userAVal);
-    userBVal = Math.sqrt(userBVal);
-    let similarity = dot_product / (userAVal * userBVal);
+    if (userAVal === 0.0 || userBVal === 0.0)
+        return 0;
+    
+    // if (userA.id === 300 && userB.id === 90) 
+        // console.log("dot product: " + dot_product + " userAVal: " + userAVal + " userBVal: " + userBVal);
+    
+    let similarity = dot_product / (Math.sqrt(userAVal) * Math.sqrt(userBVal));
+
+    if (similarity >= 1)
+        similarity = 0.5;
+    if(similarity <= 0) 
+        similarity = 0.1;
+
     return similarity;
 }
 
@@ -69,27 +87,26 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     for (let i = 0; i < candidate_sim_users.length; i++) {
         let sim = cosine_usr_usr(user, candidate_sim_users[i]);
         let index = 0;
-        if (candidate_sim_users_sorted.length > 0) {
-            while (index < candidate_sim_users_sorted.length && sim < cosine_usr_usr(user, candidate_sim_users_sorted[index]) ) {
+        if (candidate_sim_users.length > 0) {
+            while (index < candidate_sim_users.length && sim < cosine_usr_usr(user, rated_by_users[index]) ) {
                 index++;
             }
         }
         candidate_sim_users_sorted.splice(index, 0, candidate_sim_users[i]);
     }
-
-
-    // console.log("Sorted candidate users: ");
-    // for (let i = 0; i < candidate_sim_users_sorted.length; i++) {
-    //     console.log("User: " + candidate_sim_users_sorted[i].id);
-    //     console.log("Similarity: " + cosine_usr_usr(user, candidate_sim_users_sorted[i]));
-    //     console.log("Gave movie " + movie.id + " a rating of " + candidate_sim_users_sorted[i].entries.filter(entry => entry.movieId === movie.id)[0].rating);
-    // }
+        // console.log("Sorted candidate users: ");
+        // for (let i = 0; i < candidate_sim_users_sorted.length; i++) {
+        //     console.log("User: " + candidate_sim_users_sorted[i].id);
+        //     console.log("Similarity: " + cosine_usr_usr(user, candidate_sim_users_sorted[i]));
+        //     console.log("Gave movie " + movie.id + " a rating of " + candidate_sim_users_sorted[i].entries.filter(entry => entry.movieId === movie.id)[0].rating);
+        // }
+    
 
         
         
 
     //Finally, use the k most similar users' weighted ratings of the target movie to predict the target user's rating
-    let k = user.entries.filter(entry => entry.rating > 0).length;
+    let k = candidate_sim_users.length;
     
     let sum_of_weights = 0;
     let sum_of_ratings = 0;
@@ -98,22 +115,26 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     for (let i = 0; i < k; i++) {
         if (candidate_sim_users_sorted[i] !== undefined) {
             let sim_user = candidate_sim_users_sorted[i];
-            let sim_user_rating = sim_user.entries.filter(entry => entry.movieId == movie.id)[0].rating;
+            let sim_user_rating = sim_user.entries.filter(entry => entry.movieId === movie.id)[0].rating;
             let sim_user_weight = cosine_usr_usr(user, sim_user);
             sum_of_weights += sim_user_weight;
             sum_of_ratings += sim_user_rating * sim_user_weight;
-        } else
+            // console.log("Weight sum: " + sum_of_weights + " rating sum: " + sum_of_ratings);
+        } else {
             k = i;
             break;
+        }
     }
-    // console.log("Using " + k + " most similar users");
+    console.log("Using " + k + " most similar users");
 
-    predicted_rating = (sum_of_ratings / sum_of_weights) ;
+    
 
-    if (candidate_sim_users.length < 1) {
-        predicted_rating = user.avgRating();
-        // console.log("No similar users available, using average rating of " + predicted_rating);
-    }
+    if (candidate_sim_users.length < 1 || sum_of_weights === 0) {
+        // predicted_rating = user.avgRating();
+        predicted_rating = 3;
+        // console.log("No similar users available, using hard rating of " + predicted_rating);
+    } else
+        predicted_rating = sum_of_ratings / sum_of_weights ;
 
     if (predicted_rating > 4.5)
         predicted_rating = 5;
@@ -126,7 +147,6 @@ export function cosine_usr_mov(user: User, movie: Movie, datasets: Dataset[]) {
     new_entry.userId = user.id;
     new_entry.movieId = movie.id;
     new_entry.rating = predicted_rating;
-
     // console.log("Predicted rating for user " + user.id + " for movie " + movie.id + ": " + predicted_rating);
     console.log("Prediction complete");
     return new_entry;
